@@ -198,6 +198,25 @@ export const teamListOutputSchema: OutputSchema = {
   ],
 };
 
+export const measurableScoreOutputSchema: OutputSchema = {
+  fields: [
+    { key: 'measurableId', label: 'Measurable ID' },
+    { key: 'value', label: 'Value', format: 'number' },
+    {
+      key: 'periodStartDate',
+      label: 'Period Start Date',
+      format: 'datetime',
+      description: 'The period this score was written to. Ninety keys the score on it.',
+    },
+    {
+      key: 'response',
+      label: 'Ninety Response',
+      description:
+        'Whatever Ninety returned for the write. The endpoint is not documented to return a body, so this is often empty.',
+    },
+  ],
+};
+
 export const todoTriggerOutputSchema: OutputSchema = { fields: todoFields };
 
 export const issueTriggerOutputSchema: OutputSchema = { fields: issueFields };

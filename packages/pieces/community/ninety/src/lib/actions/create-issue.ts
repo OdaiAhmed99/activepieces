@@ -5,7 +5,7 @@ import {
 } from '@activepieces/pieces-framework';
 import { ninetyAuth } from '../auth';
 import { ninetyCommon } from '../common/client';
-import { ninetyProps } from '../common/props';
+import { ninetyPropUtils, ninetyProps } from '../common/props';
 import { issueOutputSchema } from '../common/output-schemas';
 
 export const createIssue = createAction({
@@ -48,9 +48,7 @@ export const createIssue = createAction({
         ...spreadIfDefined('userId', propsValue.userId),
         ...spreadIfDefined(
           'priority',
-          propsValue.priority === undefined
-            ? undefined
-            : Number(propsValue.priority)
+          ninetyPropUtils.toOptionalNumber(propsValue.priority)
         ),
       },
     });

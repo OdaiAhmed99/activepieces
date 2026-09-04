@@ -1,4 +1,4 @@
-import { Property, spreadIfDefined } from '@activepieces/pieces-framework';
+import { isNil, Property, spreadIfDefined } from '@activepieces/pieces-framework';
 import { ninetyAuth } from '../auth';
 import { ninetyCommon } from './client';
 
@@ -161,6 +161,23 @@ function triStateToBoolean(value: string | undefined): boolean | undefined {
     return false;
   }
   return undefined;
+}
+
+function toOptionalNumber(
+  value: string | number | undefined
+): number | undefined {
+  if (isNil(value)) {
+    return undefined;
+  }
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : undefined;
+  }
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return undefined;
+  }
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 function usersDropdown({
@@ -517,4 +534,4 @@ export const ninetyProps = {
   }),
 };
 
-export const ninetyPropUtils = { triStateToBoolean };
+export const ninetyPropUtils = { triStateToBoolean, toOptionalNumber };

@@ -2,6 +2,7 @@ import { createAction, Property } from '@activepieces/pieces-framework';
 import { ninetyAuth } from '../auth';
 import { ninetyCommon } from '../common/client';
 import { ninetyProps } from '../common/props';
+import { measurableScoreOutputSchema } from '../common/output-schemas';
 
 export const setMeasurableScore = createAction({
   auth: ninetyAuth,
@@ -15,6 +16,7 @@ export const setMeasurableScore = createAction({
       'Writes the score for one Ninety measurable in one period. The period start date identifies the cell, so calling it again with the same date overwrites that score rather than adding another. Use Find Measurables to get the measurable id. Safe to retry.',
     idempotent: true,
   },
+  outputSchema: measurableScoreOutputSchema,
   props: {
     teamId: ninetyProps.teamIdOptional,
     measurableId: ninetyProps.measurableId,

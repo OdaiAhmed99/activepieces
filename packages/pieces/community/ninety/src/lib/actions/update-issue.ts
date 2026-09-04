@@ -52,9 +52,7 @@ export const updateIssue = createAction({
         ...spreadIfDefined('description', propsValue.description),
         ...spreadIfDefined(
           'priority',
-          propsValue.priority === undefined
-            ? undefined
-            : Number(propsValue.priority)
+          ninetyPropUtils.toOptionalNumber(propsValue.priority)
         ),
         ...spreadIfDefined(
           'completed',
