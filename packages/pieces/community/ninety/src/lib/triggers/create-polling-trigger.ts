@@ -45,6 +45,7 @@ export function createNinetyPollingTrigger<
   fetchRecords: (params: {
     token: string;
     propsValue: StaticPropsValue<P>;
+    since: number;
   }) => Promise<R[]>;
 }) {
   const polling: Polling<
@@ -52,10 +53,11 @@ export function createNinetyPollingTrigger<
     StaticPropsValue<P>
   > = {
     strategy: DedupeStrategy.TIMEBASED,
-    items: async ({ auth, propsValue }) => {
+    items: async ({ auth, propsValue, lastFetchEpochMS }) => {
       const records = await fetchRecords({
         token: auth.secret_text,
         propsValue,
+        since: lastFetchEpochMS,
       });
       return records
         .map((record) => ({

@@ -215,6 +215,45 @@ describe('a burst larger than one page', () => {
     expect(sendRequest).toHaveBeenCalledTimes(5);
   });
 
+  test('an issue burst larger than one page keeps reading, so nothing falls behind the checkpoint', async () => {
+    const { store, data } = fakeStore();
+    data.set('lastPoll', CHECKPOINT);
+    reply({ items: fullIssuePage(0), totalCount: 150 });
+    reply({ items: fullIssuePage(1).slice(0, 50), totalCount: 150 });
+
+    const fired = await newIssue.run({ auth, propsValue: {}, store });
+
+    expect(sendRequest.mock.calls.map((call) => call[0].body.pageIndex)).toEqual([0, 1]);
+    expect(fired).toHaveLength(150);
+  });
+
+  test('the issue walk stops as soon as a page reaches past the checkpoint', async () => {
+    const { store, data } = fakeStore();
+    data.set('lastPoll', CHECKPOINT);
+    const page = fullIssuePage(0);
+    page[page.length - 1] = {
+      _id: 'older-than-checkpoint',
+      createdDate: new Date(CHECKPOINT - 1000).toISOString(),
+    };
+    reply({ items: page, totalCount: 400 });
+
+    await newIssue.run({ auth, propsValue: {}, store });
+
+    expect(sendRequest).toHaveBeenCalledTimes(1);
+  });
+
+  test('the issue walk stops at the cap even when every page is new', async () => {
+    const { store, data } = fakeStore();
+    data.set('lastPoll', CHECKPOINT);
+    for (let page = 0; page < 6; page++) {
+      reply({ items: fullIssuePage(page), totalCount: 999 });
+    }
+
+    await newIssue.run({ auth, propsValue: {}, store });
+
+    expect(sendRequest).toHaveBeenCalledTimes(5);
+  });
+
   test('the poll asks for the largest page each endpoint allows', async () => {
     const { store, data } = fakeStore();
     data.set('lastPoll', CHECKPOINT);
@@ -391,6 +430,15 @@ function fullTodoPage(page: number) {
     _id: `t${page}-${index}`,
     createdDate: new Date(
       CHECKPOINT + (page * 100 + index + 1) * 1000
+    ).toISOString(),
+  }));
+}
+
+function fullIssuePage(page: number) {
+  return Array.from({ length: 100 }, (unused, index) => ({
+    _id: `i${page}-${index}`,
+    createdDate: new Date(
+      CHECKPOINT + (1000 - page * 100 - index) * 1000
     ).toISOString(),
   }));
 }
