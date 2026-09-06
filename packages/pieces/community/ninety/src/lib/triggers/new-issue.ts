@@ -6,7 +6,7 @@ import { SAMPLE_ISSUE } from '../common/samples';
 import { createNinetyPollingTrigger } from './create-polling-trigger';
 
 const ISSUE_PAGE_SIZE = 100;
-const ISSUE_MAX_PAGES = 5;
+const ISSUE_MAX_PAGES = 50;
 
 export const newIssue = createNinetyPollingTrigger({
   name: 'new_issue',

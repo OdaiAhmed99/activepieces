@@ -242,16 +242,16 @@ describe('a burst larger than one page', () => {
     expect(sendRequest).toHaveBeenCalledTimes(1);
   });
 
-  test('the issue walk stops at the cap even when every page is new', async () => {
+  test('a runaway walk is still bounded, so one poll cannot read a whole account', async () => {
     const { store, data } = fakeStore();
     data.set('lastPoll', CHECKPOINT);
-    for (let page = 0; page < 6; page++) {
-      reply({ items: fullIssuePage(page), totalCount: 999 });
+    for (let page = 0; page < 60; page++) {
+      reply({ items: fullIssuePage(page), totalCount: 99999 });
     }
 
     await newIssue.run({ auth, propsValue: {}, store });
 
-    expect(sendRequest).toHaveBeenCalledTimes(5);
+    expect(sendRequest).toHaveBeenCalledTimes(50);
   });
 
   test('the poll asks for the largest page each endpoint allows', async () => {
@@ -438,7 +438,7 @@ function fullIssuePage(page: number) {
   return Array.from({ length: 100 }, (unused, index) => ({
     _id: `i${page}-${index}`,
     createdDate: new Date(
-      CHECKPOINT + (1000 - page * 100 - index) * 1000
+      CHECKPOINT + (100000 - page * 100 - index) * 1000
     ).toISOString(),
   }));
 }
