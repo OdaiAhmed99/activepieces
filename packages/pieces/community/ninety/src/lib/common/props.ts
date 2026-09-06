@@ -51,7 +51,7 @@ function teamDropdown<R extends boolean>({
         return {
           disabled: true,
           options: [],
-          placeholder: 'Could not load teams from Ninety',
+          placeholder: loadFailure({ error, noun: 'teams' }),
         };
       }
     },
@@ -405,7 +405,7 @@ export const ninetyProps = {
         return {
           disabled: true,
           options: [],
-          placeholder: 'Could not load rocks from Ninety',
+          placeholder: loadFailure({ error, noun: 'rocks' }),
         };
       }
     },
@@ -452,7 +452,7 @@ export const ninetyProps = {
         return {
           disabled: true,
           options: [],
-          placeholder: 'Could not load measurables from Ninety',
+          placeholder: loadFailure({ error, noun: 'measurables' }),
         };
       }
     },
@@ -485,7 +485,7 @@ export const ninetyProps = {
         return {
           disabled: true,
           options: [],
-          placeholder: 'Could not load teams from Ninety',
+          placeholder: loadFailure({ error, noun: 'teams' }),
         };
       }
     },
@@ -528,11 +528,6 @@ export const ninetyProps = {
     required: false,
   }),
 
-  pageSize: Property.Number({
-    displayName: 'Page Size',
-    description: 'How many records to return',
-    required: false,
-  }),
 
   searchText: Property.ShortText({
     displayName: 'Search Text',

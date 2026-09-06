@@ -1,4 +1,4 @@
-import { PieceAuth } from '@activepieces/pieces-framework';
+import { isNil, PieceAuth, tryCatch } from '@activepieces/pieces-framework';
 import { ninetyCommon } from './common/client';
 
 export const ninetyAuth = PieceAuth.SecretText({
@@ -8,15 +8,20 @@ export const ninetyAuth = PieceAuth.SecretText({
 The public API is part of Ninety's Thrive plan, and the token carries its owner's permissions — every step only ever sees the teams and records that user can see.`,
   required: true,
   validate: async ({ auth }) => {
-    try {
-      await ninetyCommon.validateAuth({ token: auth });
+    const { error } = await tryCatch(() =>
+      ninetyCommon.validateAuth({ token: auth })
+    );
+    if (isNil(error)) {
       return { valid: true };
-    } catch (error) {
-      return {
-        valid: false,
-        error:
-          'Ninety would not accept this token. Check that it was copied whole from Settings > Developer Settings, and that the account is on the Thrive plan.',
-      };
     }
+    return { valid: false, error: reasonFor(error) };
   },
 });
+
+function reasonFor(error: unknown): string {
+  const message = error instanceof Error ? error.message.trim() : '';
+  if (message.length === 0) {
+    return 'Ninety could not be reached to check this token. Try again in a moment.';
+  }
+  return message;
+}

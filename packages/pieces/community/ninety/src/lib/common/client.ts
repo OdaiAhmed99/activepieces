@@ -44,8 +44,9 @@ function describeError(error: unknown): unknown {
   if (isNil(hint)) {
     return error;
   }
+  const detail = error.response.body;
   return new Error(
-    `${hint} (Ninety returned ${error.response.status}: ${error.message})`
+    `${hint} (Ninety returned ${error.response.status}: ${JSON.stringify(detail)})`
   );
 }
 
