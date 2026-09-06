@@ -261,30 +261,48 @@ describe('multi-selects', () => {
   });
 });
 
-describe('milestones', () => {
-  test('marking a milestone not done needs no completed date', async () => {
-    reply({ _id: 'm1' });
-    await runAction(createMilestone, {
-      teamId: 't1',
-      rockId: 'r1',
-      title: 'x',
-      dueDate: '2026-09-12T00:00:00.000Z',
-      isDone: 'no',
-    });
-    expect(lastBody().isDone).toBe(false);
-    expect('completedDate' in lastBody()).toBe(false);
+describe('unsharing a rock, where an empty selection must not mean "wipe"', () => {
+  test('an untouched multi-select leaves the additional teams alone', async () => {
+    reply({ _id: 'r1' });
+    await runAction(updateRock, { rockId: 'r1', additionalTeamIds: [] });
+    expect('additionalTeamIds' in lastBody()).toBe(false);
   });
 
-  test('leaving done unchanged sends no isDone at all', async () => {
+  test('the unshare checkbox is the only thing that sends an empty list', async () => {
+    reply({ _id: 'r1' });
+    await runAction(updateRock, {
+      rockId: 'r1',
+      additionalTeamIds: [],
+      clearAdditionalTeams: true,
+    });
+    expect(lastBody().additionalTeamIds).toEqual([]);
+  });
+
+  test('a chosen set of teams is sent as it stands', async () => {
+    reply({ _id: 'r1' });
+    await runAction(updateRock, {
+      rockId: 'r1',
+      additionalTeamIds: ['t2', 't3'],
+    });
+    expect(lastBody().additionalTeamIds).toEqual(['t2', 't3']);
+  });
+});
+
+describe('milestones', () => {
+  test('the parent rock, its team and the due date are the whole body', async () => {
     reply({ _id: 'm1' });
     await runAction(createMilestone, {
       teamId: 't1',
       rockId: 'r1',
       title: 'x',
       dueDate: '2026-09-12T00:00:00.000Z',
-      isDone: 'any',
     });
-    expect('isDone' in lastBody()).toBe(false);
+    expect(Object.keys(lastBody()).sort()).toEqual([
+      'dueDate',
+      'rockId',
+      'teamId',
+      'title',
+    ]);
   });
 });
 

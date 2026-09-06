@@ -81,6 +81,12 @@ export const updateRock = createAction({
     }),
     futureScope: ninetyProps.rockFutureScope,
     additionalTeamIds: ninetyProps.additionalTeamIds,
+    clearAdditionalTeams: Property.Checkbox({
+      displayName: 'Unshare From Additional Teams',
+      description:
+        'Removes every additional team from the rock. An empty selection above leaves them as they are, so this is the only way to clear them.',
+      required: false,
+    }),
     archived: ninetyProps.archivedSetter,
   },
   async run({ auth, propsValue }) {
@@ -109,8 +115,10 @@ export const updateRock = createAction({
         ),
         ...spreadIfDefined(
           'additionalTeamIds',
-          propsValue.additionalTeamIds === undefined ||
-            propsValue.additionalTeamIds.length === 0
+          propsValue.clearAdditionalTeams === true
+            ? []
+            : propsValue.additionalTeamIds === undefined ||
+              propsValue.additionalTeamIds.length === 0
             ? undefined
             : propsValue.additionalTeamIds
         ),

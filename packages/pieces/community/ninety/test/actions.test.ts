@@ -197,31 +197,16 @@ describe('create rock', () => {
 });
 
 describe('create milestone', () => {
-  test('a milestone created as done without a completed date is refused before the call', async () => {
-    await expect(
-      runAction(createMilestone, {
-        teamId: 'team-1',
-        rockId: 'r1',
-        title: 'Publish the checklist',
-        dueDate: '2026-09-12T00:00:00.000Z',
-        isDone: 'yes',
-      })
-    ).rejects.toThrow(/Completed Date/);
-    expect(sendRequest).not.toHaveBeenCalled();
-  });
-
-  test('a done milestone with a completed date is sent', async () => {
+  test('no done state is sent, because Ninety ignores it and always creates a milestone as not done', async () => {
     reply({ _id: 'm1' });
     await runAction(createMilestone, {
       teamId: 'team-1',
       rockId: 'r1',
       title: 'Publish the checklist',
       dueDate: '2026-09-12T00:00:00.000Z',
-      isDone: 'yes',
-      completedDate: '2026-09-10T00:00:00.000Z',
     });
-    expect(lastBody().isDone).toBe(true);
-    expect(lastBody().completedDate).toBe('2026-09-10T00:00:00.000Z');
+    expect('isDone' in lastBody()).toBe(false);
+    expect('completedDate' in lastBody()).toBe(false);
   });
 
   test('the parent rock and its team both travel with the milestone', async () => {

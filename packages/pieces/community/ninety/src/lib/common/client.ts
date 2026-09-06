@@ -555,10 +555,6 @@ export type NinetyMilestoneInput = {
   title: string;
   dueDate: string;
   description?: string;
-  isDone?: boolean;
-  completedDate?: string;
-  toDoId?: string;
-  userOrdinal?: number;
 };
 
 export type NinetyMeasurable = {
