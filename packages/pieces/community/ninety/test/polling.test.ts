@@ -88,21 +88,21 @@ describe('what a poll emits', () => {
     const { store, data } = fakeStore();
     data.set('lastPoll', AN_HOUR_AGO);
     reply([
-      { id: 'new', createdDate: NEWER },
-      { id: 'old', createdDate: OLDER },
+      { _id: 'new', createdDate: NEWER },
+      { _id: 'old', createdDate: OLDER },
     ]);
 
     const fired = await newTodo.run({ auth, propsValue: {}, store });
 
-    expect(fired).toEqual([{ id: 'new', createdDate: NEWER }]);
+    expect(fired).toEqual([{ _id: 'new', createdDate: NEWER }]);
   });
 
   test('the checkpoint advances to the newest record seen', async () => {
     const { store, data } = fakeStore();
     data.set('lastPoll', AN_HOUR_AGO);
     reply([
-      { id: 'newest', createdDate: NEWEST },
-      { id: 'newer', createdDate: NEWER },
+      { _id: 'newest', createdDate: NEWEST },
+      { _id: 'newer', createdDate: NEWER },
     ]);
 
     await newTodo.run({ auth, propsValue: {}, store });
@@ -113,7 +113,7 @@ describe('what a poll emits', () => {
   test('a second poll over the same records fires nothing', async () => {
     const { store, data } = fakeStore();
     data.set('lastPoll', AN_HOUR_AGO);
-    const page = [{ id: 'new', createdDate: NEWER }];
+    const page = [{ _id: 'new', createdDate: NEWER }];
 
     reply(page);
     const first = await newTodo.run({ auth, propsValue: {}, store });
@@ -138,17 +138,17 @@ describe('what a poll emits', () => {
   test('a record with no created date is skipped rather than fired or crashed on', async () => {
     const { store, data } = fakeStore();
     data.set('lastPoll', AN_HOUR_AGO);
-    reply([{ id: 'undated' }, { id: 'new', createdDate: NEWER }]);
+    reply([{ _id: 'undated' }, { _id: 'new', createdDate: NEWER }]);
 
     const fired = await newTodo.run({ auth, propsValue: {}, store });
 
-    expect(fired).toEqual([{ id: 'new', createdDate: NEWER }]);
+    expect(fired).toEqual([{ _id: 'new', createdDate: NEWER }]);
   });
 
   test('an unparseable created date is skipped rather than treated as the epoch', async () => {
     const { store, data } = fakeStore();
     data.set('lastPoll', AN_HOUR_AGO);
-    reply([{ id: 'bad', createdDate: 'not a date' }]);
+    reply([{ _id: 'bad', createdDate: 'not a date' }]);
 
     const fired = await newTodo.run({ auth, propsValue: {}, store });
 
@@ -187,16 +187,17 @@ describe('rocks, which carry _id instead of id', () => {
 });
 
 describe('how each trigger asks for its newest page', () => {
-  test('to-dos use the lowercase order and the one-based page', async () => {
+  test('to-dos are never asked to sort, because Ninety rejects every creation-date sort with a 400', async () => {
     const { store, data } = fakeStore();
     data.set('lastPoll', AN_HOUR_AGO);
     reply([]);
 
     await newTodo.run({ auth, propsValue: {}, store });
 
-    expect(lastBody().sort).toBe('createdDate');
-    expect(lastBody().order).toBe('desc');
+    expect(lastBody().sort).toBeUndefined();
+    expect(lastBody().order).toBeUndefined();
     expect(lastBody().page).toBe(1);
+    expect(lastBody().archived).toBe(false);
   });
 
   test('issues use the uppercase direction and the zero-based page index', async () => {
@@ -235,18 +236,18 @@ describe('how each trigger asks for its newest page', () => {
 describe('loading test data in the builder', () => {
   test('test data comes back without needing a checkpoint', async () => {
     const { store } = fakeStore();
-    reply([{ id: 't1', createdDate: OLDER }]);
+    reply([{ _id: 't1', createdDate: OLDER }]);
 
     const items = await newTodo.test({ auth, propsValue: {}, store });
 
-    expect(items).toEqual([{ id: 't1', createdDate: OLDER }]);
+    expect(items).toEqual([{ _id: 't1', createdDate: OLDER }]);
   });
 
   test('test data is capped at five records', async () => {
     const { store } = fakeStore();
     reply(
       Array.from({ length: 9 }, (unused, index) => ({
-        id: `t${index}`,
+        _id: `t${index}`,
         createdDate: OLDER,
       }))
     );

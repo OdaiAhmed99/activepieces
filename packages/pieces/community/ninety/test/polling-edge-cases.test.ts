@@ -51,7 +51,7 @@ describe('the checkpoint boundary', () => {
   test('a record created at the exact checkpoint does not fire, so nothing repeats', async () => {
     const { store, data } = fakeStore();
     data.set('lastPoll', CHECKPOINT);
-    reply([{ id: 'edge', createdDate: AT_CHECKPOINT }]);
+    reply([{ _id: 'edge', createdDate: AT_CHECKPOINT }]);
 
     const fired = await newTodo.run({ auth, propsValue: {}, store });
 
@@ -61,7 +61,7 @@ describe('the checkpoint boundary', () => {
   test('a record one millisecond past the checkpoint fires, so nothing is lost', async () => {
     const { store, data } = fakeStore();
     data.set('lastPoll', CHECKPOINT);
-    reply([{ id: 'edge', createdDate: ONE_MS_LATER }]);
+    reply([{ _id: 'edge', createdDate: ONE_MS_LATER }]);
 
     const fired = await newTodo.run({ auth, propsValue: {}, store });
 
@@ -73,8 +73,8 @@ describe('the checkpoint boundary', () => {
     const { store, data } = fakeStore();
     data.set('lastPoll', CHECKPOINT);
     reply([
-      { id: 'old', createdDate: '2026-01-01T00:00:00.000Z' },
-      { id: 'older', createdDate: '2025-01-01T00:00:00.000Z' },
+      { _id: 'old', createdDate: '2026-01-01T00:00:00.000Z' },
+      { _id: 'older', createdDate: '2025-01-01T00:00:00.000Z' },
     ]);
 
     await newTodo.run({ auth, propsValue: {}, store });
@@ -88,23 +88,23 @@ describe('a page that is not ordered the way we asked', () => {
     const { store, data } = fakeStore();
     data.set('lastPoll', CHECKPOINT);
     reply([
-      { id: 'old1', createdDate: '2026-09-04T08:00:00.000Z' },
-      { id: 'new1', createdDate: '2026-09-04T09:30:00.000Z' },
-      { id: 'old2', createdDate: '2026-09-04T07:00:00.000Z' },
-      { id: 'new2', createdDate: '2026-09-04T09:10:00.000Z' },
+      { _id: 'old1', createdDate: '2026-09-04T08:00:00.000Z' },
+      { _id: 'new1', createdDate: '2026-09-04T09:30:00.000Z' },
+      { _id: 'old2', createdDate: '2026-09-04T07:00:00.000Z' },
+      { _id: 'new2', createdDate: '2026-09-04T09:10:00.000Z' },
     ]);
 
     const fired = await newTodo.run({ auth, propsValue: {}, store });
 
-    expect(fired.map((item) => item.id)).toEqual(['new1', 'new2']);
+    expect(fired.map((item) => item._id)).toEqual(['new1', 'new2']);
   });
 
   test('the checkpoint takes the newest record in an unsorted page, not the first', async () => {
     const { store, data } = fakeStore();
     data.set('lastPoll', CHECKPOINT);
     reply([
-      { id: 'first', createdDate: '2026-09-04T09:10:00.000Z' },
-      { id: 'newest', createdDate: '2026-09-04T09:59:00.000Z' },
+      { _id: 'first', createdDate: '2026-09-04T09:10:00.000Z' },
+      { _id: 'newest', createdDate: '2026-09-04T09:59:00.000Z' },
     ]);
 
     await newTodo.run({ auth, propsValue: {}, store });
@@ -118,19 +118,19 @@ describe('timestamps that are not plain UTC', () => {
     const { store, data } = fakeStore();
     data.set('lastPoll', Date.parse('2026-09-04T12:00:00.000Z'));
     reply([
-      { id: 'plus3-before', createdDate: '2026-09-04T14:00:00.000+03:00' },
-      { id: 'plus3-after', createdDate: '2026-09-04T16:00:00.000+03:00' },
+      { _id: 'plus3-before', createdDate: '2026-09-04T14:00:00.000+03:00' },
+      { _id: 'plus3-after', createdDate: '2026-09-04T16:00:00.000+03:00' },
     ]);
 
     const fired = await newTodo.run({ auth, propsValue: {}, store });
 
-    expect(fired.map((item) => item.id)).toEqual(['plus3-after']);
+    expect(fired.map((item) => item._id)).toEqual(['plus3-after']);
   });
 
   test('an empty created date is skipped rather than read as the epoch', async () => {
     const { store, data } = fakeStore();
     data.set('lastPoll', CHECKPOINT);
-    reply([{ id: 'blank', createdDate: '' }]);
+    reply([{ _id: 'blank', createdDate: '' }]);
 
     const fired = await newTodo.run({ auth, propsValue: {}, store });
 
@@ -141,7 +141,7 @@ describe('timestamps that are not plain UTC', () => {
   test('a null created date is skipped', async () => {
     const { store, data } = fakeStore();
     data.set('lastPoll', CHECKPOINT);
-    reply([{ id: 'nulled', createdDate: null }]);
+    reply([{ _id: 'nulled', createdDate: null }]);
 
     const fired = await newTodo.run({ auth, propsValue: {}, store });
 
@@ -153,16 +153,66 @@ describe('a burst larger than one page', () => {
   test('a full page of new records all fire, none are capped away', async () => {
     const { store, data } = fakeStore();
     data.set('lastPoll', CHECKPOINT);
-    reply(
-      Array.from({ length: 100 }, (unused, index) => ({
-        id: `t${index}`,
-        createdDate: new Date(CHECKPOINT + (index + 1) * 1000).toISOString(),
-      }))
-    );
+    reply(fullTodoPage(0));
+    reply([]);
 
     const fired = await newTodo.run({ auth, propsValue: {}, store });
 
     expect(fired).toHaveLength(100);
+  });
+
+  test('a full first page is followed by a second, since Ninety cannot order to-dos by creation date', async () => {
+    const { store, data } = fakeStore();
+    data.set('lastPoll', CHECKPOINT);
+    reply(fullTodoPage(0));
+    reply([
+      {
+        _id: 'tail',
+        createdDate: new Date(CHECKPOINT + 500_000).toISOString(),
+      },
+    ]);
+
+    const fired = await newTodo.run({ auth, propsValue: {}, store });
+
+    expect(sendRequest.mock.calls.map((call) => call[0].body.page)).toEqual([1, 2]);
+    expect(fired).toHaveLength(101);
+  });
+
+  test('a record that straddles two unordered pages fires once, not twice', async () => {
+    const { store, data } = fakeStore();
+    data.set('lastPoll', CHECKPOINT);
+    const straddler = {
+      _id: 'straddler',
+      createdDate: new Date(CHECKPOINT + 900_000).toISOString(),
+    };
+    reply([...fullTodoPage(0).slice(0, 99), straddler]);
+    reply([straddler]);
+
+    const fired = await newTodo.run({ auth, propsValue: {}, store });
+
+    expect(fired.filter((item) => item._id === 'straddler')).toHaveLength(1);
+  });
+
+  test('a short page stops the walk, so a small team costs one request', async () => {
+    const { store, data } = fakeStore();
+    data.set('lastPoll', CHECKPOINT);
+    reply([{ _id: 't1', createdDate: new Date(CHECKPOINT + 1000).toISOString() }]);
+
+    await newTodo.run({ auth, propsValue: {}, store });
+
+    expect(sendRequest).toHaveBeenCalledTimes(1);
+  });
+
+  test('the walk stops at the cap rather than reading a whole account', async () => {
+    const { store, data } = fakeStore();
+    data.set('lastPoll', CHECKPOINT);
+    for (let page = 0; page < 6; page++) {
+      reply(fullTodoPage(page));
+    }
+
+    await newTodo.run({ auth, propsValue: {}, store });
+
+    expect(sendRequest).toHaveBeenCalledTimes(5);
   });
 
   test('the poll asks for the largest page each endpoint allows', async () => {
@@ -208,13 +258,22 @@ describe('when Ninety fails mid-poll', () => {
     expect(data.get('lastPoll')).toBe(CHECKPOINT);
   });
 
-  test('a failure while enabling propagates rather than enabling a dead trigger', async () => {
+  test('the Test button surfaces a Ninety failure instead of showing an empty result', async () => {
     const { store } = fakeStore();
     sendRequest.mockRejectedValueOnce(new Error('boom'));
 
     await expect(
       newTodo.test({ auth, propsValue: {}, store })
     ).rejects.toBeDefined();
+  });
+
+  test('enabling stores a checkpoint without spending a request, so it cannot fail on Ninety', async () => {
+    const { store, data } = fakeStore();
+
+    await newTodo.onEnable({ auth, propsValue: {}, store });
+
+    expect(sendRequest).not.toHaveBeenCalled();
+    expect(typeof data.get('lastPoll')).toBe('number');
   });
 });
 
@@ -291,7 +350,7 @@ describe('each trigger reads its own resource', () => {
   test('an issues response that is a bare array is still handled', async () => {
     const { store, data } = fakeStore();
     data.set('lastPoll', CHECKPOINT);
-    reply([{ id: 'i1', createdDate: ONE_MS_LATER }]);
+    reply([{ _id: 'i1', createdDate: ONE_MS_LATER }]);
 
     const fired = await newIssue.run({ auth, propsValue: {}, store });
 
@@ -326,3 +385,12 @@ describe('every trigger returns an array, which the engine requires', () => {
     expect(Array.isArray(rocks)).toBe(true);
   });
 });
+
+function fullTodoPage(page: number) {
+  return Array.from({ length: 100 }, (unused, index) => ({
+    _id: `t${page}-${index}`,
+    createdDate: new Date(
+      CHECKPOINT + (page * 100 + index + 1) * 1000
+    ).toISOString(),
+  }));
+}

@@ -52,20 +52,27 @@ export const findTodos = createAction({
       displayName: 'Due On Or Before',
       required: false,
     }),
-    sort: Property.ShortText({
+    sort: Property.StaticDropdown({
       displayName: 'Sort By',
-      description: 'A to-do field such as dueDate or createdDate',
+      description:
+        'Ninety sorts to-dos by these fields only. Creation date is not one of them, so leave this empty to take the order Ninety returns.',
       required: false,
-      defaultValue: 'createdDate',
+      options: {
+        options: [
+          { label: 'Due date', value: 'dueDate' },
+          { label: 'Title', value: 'title' },
+          { label: 'Completed date', value: 'completedDate' },
+        ],
+      },
     }),
     order: Property.StaticDropdown({
       displayName: 'Order',
+      description: 'Ignored unless Sort By is set',
       required: false,
-      defaultValue: 'desc',
       options: {
         options: [
-          { label: 'Newest first', value: 'desc' },
-          { label: 'Oldest first', value: 'asc' },
+          { label: 'Descending', value: 'desc' },
+          { label: 'Ascending', value: 'asc' },
         ],
       },
     }),
@@ -117,7 +124,10 @@ export const findTodos = createAction({
           })
         ),
         ...spreadIfDefined('sort', propsValue.sort),
-        ...spreadIfDefined('order', propsValue.order),
+        ...spreadIfDefined(
+          'order',
+          propsValue.sort === undefined ? undefined : propsValue.order
+        ),
         ...spreadIfDefined('page', propsValue.page),
         ...spreadIfDefined('pageSize', propsValue.pageSize),
       },
