@@ -78,7 +78,7 @@ describe('request shaping', () => {
 
 describe('query envelopes', () => {
   test('a bare array response is read as the items', async () => {
-    reply([{ id: '1' }, { id: '2' }]);
+    reply([{ _id: '1' }, { _id: '2' }]);
     const { items, totalCount } = await ninetyCommon.queryTodos({
       token,
       query: {},
@@ -88,7 +88,7 @@ describe('query envelopes', () => {
   });
 
   test('a paged envelope response is unwrapped and keeps its own total', async () => {
-    reply({ items: [{ id: '1' }], totalCount: 57 });
+    reply({ items: [{ _id: '1' }], totalCount: 57 });
     const { items, totalCount } = await ninetyCommon.queryIssues({
       token,
       query: {},
@@ -261,29 +261,27 @@ describe('error messages', () => {
 });
 
 describe('user labels', () => {
-  test('a full name is preferred', () => {
+  test('first and last name are joined', () => {
     expect(
-      ninetyCommon.userLabel({ _id: 'u1', fullName: 'Amina Haddad' })
+      ninetyCommon.userLabel({ id: 'u1', firstName: 'Amina', lastName: 'Haddad' })
     ).toBe('Amina Haddad');
   });
 
-  test('first and last name are joined when there is no full name', () => {
+  test('the primary email stands in when no name is known', () => {
     expect(
-      ninetyCommon.userLabel({ _id: 'u1', firstName: 'Amina', lastName: 'Haddad' })
-    ).toBe('Amina Haddad');
-  });
-
-  test('an email stands in when no name is known', () => {
-    expect(
-      ninetyCommon.userLabel({ _id: 'u1', email: 'amina@example.com' })
+      ninetyCommon.userLabel({ id: 'u1', primaryEmail: 'amina@example.com' })
     ).toBe('amina@example.com');
   });
 
   test('the id is the last resort, so an option is never blank', () => {
-    expect(ninetyCommon.userLabel({ _id: 'u1' })).toBe('u1');
+    expect(ninetyCommon.userLabel({ id: 'u1' })).toBe('u1');
   });
 
   test('a whitespace-only name does not produce a blank label', () => {
-    expect(ninetyCommon.userLabel({ _id: 'u1', fullName: '   ' })).toBe('u1');
+    expect(ninetyCommon.userLabel({ id: 'u1', firstName: '   ' })).toBe('u1');
+  });
+
+  test('the label never falls back to _id, which Ninety does not send for users', () => {
+    expect(ninetyCommon.userLabel({ id: 'u1' })).not.toBe(undefined);
   });
 });

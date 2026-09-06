@@ -1,5 +1,5 @@
 export const SAMPLE_TODO = {
-  id: '66c1f0a4b2d3e40012a4c9f1',
+  _id: '66c1f0a4b2d3e40012a4c9f1',
   title: 'Send the Q3 scorecard to the leadership team',
   description: 'Include the two measurables that went off track.',
   dueDate: '2026-09-11',
@@ -11,11 +11,10 @@ export const SAMPLE_TODO = {
   userId: '66a9b8c7d6e5f40012c2a7b3',
   companyId: '669f8e7d6c5b4a0012d1f6e5',
   createdDate: '2026-09-04T09:12:44.118Z',
-  updatedDate: '2026-09-04T09:12:44.118Z',
 };
 
 export const SAMPLE_ISSUE = {
-  id: '66c1f13ab2d3e40012a4ca07',
+  _id: '66c1f13ab2d3e40012a4ca07',
   title: 'Onboarding handoff keeps missing the kickoff call',
   description: '<p>Two accounts started without a kickoff last week.</p>',
   intervalCode: 'SHORT_TERM',
@@ -43,18 +42,4 @@ export const SAMPLE_ROCK = {
   archived: false,
   completed: false,
   createdDate: '2026-09-04T09:31:15.402Z',
-  updatedAt: '2026-09-04T09:31:15.402Z',
-  additionalTeamIds: [],
-  milestones: [
-    {
-      _id: '66c1f214b2d3e40012a4ca44',
-      rockId: '66c1f1c9b2d3e40012a4ca2b',
-      teamId: '66b0c1d2e3f4a50012b3d8e2',
-      ownedByUserId: '66a9b8c7d6e5f40012c2a7b3',
-      title: 'Publish the new handoff checklist',
-      dueDate: '2026-09-12T00:00:00.000Z',
-      isDone: false,
-      createdDate: '2026-09-04T09:32:04.889Z',
-    },
-  ],
 };

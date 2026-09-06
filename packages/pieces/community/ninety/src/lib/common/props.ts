@@ -97,14 +97,14 @@ function userDropdown<R extends boolean>({
           disabled: false,
           options: users.map((user) => ({
             label: ninetyCommon.userLabel(user),
-            value: user._id,
+            value: user.id,
           })),
         };
       } catch (error) {
         return {
           disabled: true,
           options: [],
-          placeholder: 'Could not load users from Ninety',
+          placeholder: loadFailure({ error, noun: 'users' }),
         };
       }
     },
@@ -210,18 +210,25 @@ function usersDropdown({
           disabled: false,
           options: users.map((user) => ({
             label: ninetyCommon.userLabel(user),
-            value: user._id,
+            value: user.id,
           })),
         };
       } catch (error) {
         return {
           disabled: true,
           options: [],
-          placeholder: 'Could not load users from Ninety',
+          placeholder: loadFailure({ error, noun: 'users' }),
         };
       }
     },
   });
+}
+
+function loadFailure({ error, noun }: { error: unknown; noun: string }): string {
+  const message = error instanceof Error ? error.message.trim() : '';
+  return message.length === 0
+    ? `Could not load ${noun} from Ninety`
+    : message;
 }
 
 export const ninetyProps = {

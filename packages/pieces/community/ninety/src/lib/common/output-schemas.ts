@@ -1,7 +1,7 @@
 import { OutputSchema, OutputSchemaField } from '@activepieces/pieces-framework';
 
 const todoFields: OutputSchemaField[] = [
-  { key: 'id', label: 'To-Do ID' },
+  { key: '_id', label: 'To-Do ID' },
   { key: 'title', label: 'Title' },
   { key: 'description', label: 'Description' },
   { key: 'dueDate', label: 'Due Date', format: 'date' },
@@ -18,11 +18,10 @@ const todoFields: OutputSchemaField[] = [
   { key: 'userId', label: 'Owner User ID' },
   { key: 'companyId', label: 'Company ID' },
   { key: 'createdDate', label: 'Created Date', format: 'datetime' },
-  { key: 'updatedDate', label: 'Updated Date', format: 'datetime' },
 ];
 
 const issueFields: OutputSchemaField[] = [
-  { key: 'id', label: 'Issue ID' },
+  { key: '_id', label: 'Issue ID' },
   { key: 'title', label: 'Title' },
   { key: 'description', label: 'Description', format: 'html' },
   {
@@ -53,15 +52,14 @@ const milestoneFields: OutputSchemaField[] = [
   { key: 'description', label: 'Description' },
   { key: 'dueDate', label: 'Due Date', format: 'datetime' },
   { key: 'isDone', label: 'Is Done', format: 'boolean' },
-  { key: 'completedDate', label: 'Completed Date', format: 'datetime' },
   { key: 'createdDate', label: 'Created Date', format: 'datetime' },
 ];
 
-const rockFields: OutputSchemaField[] = [
+const rockQueryFields: OutputSchemaField[] = [
   {
     key: '_id',
     label: 'Rock ID',
-    description: 'Rocks, milestones and teams use _id, while to-dos and issues use id.',
+    description: 'Every Ninety record uses _id. Only users use id.',
   },
   { key: 'title', label: 'Title' },
   { key: 'description', label: 'Description' },
@@ -84,14 +82,11 @@ const rockFields: OutputSchemaField[] = [
   { key: 'archived', label: 'Archived', format: 'boolean' },
   { key: 'completed', label: 'Completed', format: 'boolean' },
   { key: 'createdDate', label: 'Created Date', format: 'datetime' },
+];
+
+const rockFields: OutputSchemaField[] = [
+  ...rockQueryFields,
   { key: 'updatedAt', label: 'Updated At', format: 'datetime' },
-  { key: 'additionalTeamIds', label: 'Additional Team IDs' },
-  {
-    key: 'milestones',
-    label: 'Milestones',
-    labelKey: 'title',
-    listItems: milestoneFields,
-  },
 ];
 
 const measurableFields: OutputSchemaField[] = [
@@ -167,7 +162,7 @@ export const rockOutputSchema: OutputSchema = { fields: rockFields };
 
 export const rockListOutputSchema: OutputSchema = {
   fields: [
-    { key: 'rocks', label: 'Rocks', labelKey: 'title', listItems: rockFields },
+    { key: 'rocks', label: 'Rocks', labelKey: 'title', listItems: rockQueryFields },
     ...countFields,
   ],
 };
@@ -221,4 +216,4 @@ export const todoTriggerOutputSchema: OutputSchema = { fields: todoFields };
 
 export const issueTriggerOutputSchema: OutputSchema = { fields: issueFields };
 
-export const rockTriggerOutputSchema: OutputSchema = { fields: rockFields };
+export const rockTriggerOutputSchema: OutputSchema = { fields: rockQueryFields };

@@ -109,21 +109,17 @@ function toOptionalIsoDate({
 }
 
 function userLabel(user: NinetyUser): string {
-  const fullName = user.fullName?.trim();
-  if (!isNil(fullName) && fullName.length > 0) {
-    return fullName;
-  }
   const parts = [user.firstName, user.lastName]
     .map((part) => part?.trim())
     .filter((part) => !isNil(part) && part.length > 0);
   if (parts.length > 0) {
     return parts.join(' ');
   }
-  const email = user.email?.trim();
+  const email = user.primaryEmail?.trim();
   if (!isNil(email) && email.length > 0) {
     return email;
   }
-  return user._id;
+  return user.id;
 }
 
 export const ninetyCommon = {
@@ -397,15 +393,14 @@ export type NinetyTeam = {
 };
 
 export type NinetyUser = {
-  _id: string;
-  fullName?: string;
+  id: string;
   firstName?: string;
   lastName?: string;
-  email?: string;
+  primaryEmail?: string;
 };
 
 export type NinetyTodo = {
-  id: string;
+  _id: string;
   title: string;
   description?: string;
   dueDate?: string;
@@ -417,7 +412,6 @@ export type NinetyTodo = {
   userId: string;
   companyId: string;
   createdDate: string;
-  updatedDate: string;
 };
 
 export type NinetyTodoInput = {
@@ -448,7 +442,7 @@ export type NinetyTodoQuery = {
 };
 
 export type NinetyIssue = {
-  id: string;
+  _id: string;
   title?: string;
   description?: string;
   teamId?: string;
